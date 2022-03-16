@@ -3,8 +3,6 @@ const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
 
-var items = {};
-
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
@@ -32,31 +30,27 @@ exports.readOne = (id, callback) => {
 };
 
 exports.update = (id, text, callback) => {
-  if (exports.readAll) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    fs.writeFile(`${exports.dataDir}/${id}.txt`, text, (err) => {
-      callback(null, text);
-    });
-  }
-  // var item = items[id];
-  // if (!item) {
-  //   callback(new Error(`No item with id: ${id}`));
-  // } else {
-  //   items[id] = text;
-  //   callback(null, { id, text });
-  // }
+  exports.readOne(id, (err, data) => {
+    if (!data) {
+      callback(err, null);
+    } else {
+      fs.writeFile(`${exports.dataDir}/${id}.txt`, text, (err) => {
+        callback(null, text);
+      });
+    }
+  });
 };
 
 exports.delete = (id, callback) => {
-  var item = items[id];
-  delete items[id];
-  if (!item) {
-    // report an error if item not found
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback();
-  }
+  exports.readOne(id, (err, data) => {
+    if (!data) {
+      callback(err, null);
+    } else {
+      fs.unlink(`${exports.dataDir}/${id}.txt`, (err) => {
+        callback();
+      });
+    }
+  });
 };
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
